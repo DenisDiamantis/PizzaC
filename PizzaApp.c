@@ -1,149 +1,193 @@
-#include <stdio.h>  
 #include <pthread.h>
+#include <stdio.h>  
+#include <stdlib.h>
 #include <time.h>
-#include "Constants.c"
+#include "Constants.h"
 pthread_mutex_t lock;
 pthread_cond_t cond;
+pthread_mutex_t lock1;
+pthread_cond_t cond1;
+pthread_mutex_t lock2;
+pthread_cond_t cond2;
+pthread_mutex_t lock3;
+pthread_cond_t cond3;
+pthread_mutex_t lock4;
+pthread_cond_t cond4;
+int ntel=Ntel;
+int ncook=Ncook;
+int noven=Noven;
+int ndeliverer=Ndeliverer;
+int N=1;
 
-void main(int argc, char **argv[] )  {  
-  
-   printf("Program name is: %s\n", argv[0]);  
-   
-   if(argc < 3){  
-      printf("Not enough argument passed through command line.\n");
-   }  
-    int rc;
-    pthread_t threads[N];
-    pthread_mutex_init(&lock, NULL);
-    pthread_cond_init(&cond, NULL);
-    int Ncustomers=atoi(argv[1]);
-    int rand_r(argv[2]);
-    int id[Ncustomers];
-    int randomTime=0;
-    while(Ncustomers>0){
-        id[i] = i+1;
-        printf("Main: Order number %d\n", i+1);
-        while(randomTime==0){
-        randomTime=rand_r%6;
-        }
-        rc = pthread_create(&threads[i], NULL, order,&id[i]);
-        sleep(randomTime*100);
-    }
-    for (int i = 0; i < N; i++) {
-        pthread_join(threads[i], NULL);
-    }
-    pthread_mutex_destroy(&lock);
-    pthread_cond_destroy(&cond);    
-    return 0;
 
-    void *order(void *x){
-        int start = clock_gettime(CLOCK_REALTIME, const struct timespec *tp);
-        int id = *(int *)x;
+    void* order(void* x) {
+    	
+        struct timespec* tp;
+        long start =0;
+        int id = *(int*)x;
         int tel;
-        int pizzaQuantity=0;
-        int paymentTime=0;
+        int pizzaQuantity;
+        int paymentTime;
         int income=0;
         int cooks;
         int oven;
         int pack;
-        int N;
         int delivery;
-        int deliveryTime=0;
-        printf("Hello from order: %d\n",id);
+        int deliveryTime;
+        int pfail;
+        
+        printf("Hello from order: %d\n", id);
         tel = pthread_mutex_lock(&lock);
-        while (Ntel == 0) {
-        printf("H paraggelia %d, den brike diathesimo tilefoniti...\n", id);
-        tel = pthread_cond_wait(&cond, &lock);
+        while (ntel == 0) {
+            printf("H paraggelia %d, den brike diathesimo tilefoniti...\n", id);
+            tel = pthread_cond_wait(&cond, &lock);
         }
         printf("H paraggelia %d eksipiretitai tilefonikos.\n", id);
-        Ntel--;
+        ntel--;
         tel = pthread_mutex_unlock(&lock);
-        while(pizzaQuantity==0){
-        pizzaQuantity=rand_r%6;
-        }
-        while(paymentTime==0){
-        paymentTime=rand_r%3;
-        }
-        sleep(paymentTime*100);
-        if ((double)rand_r/RAND_MAX<0.05)
+      
+         pizzaQuantity = ((int)rand_r % (Norderhigh-Norderlow+1)) + Norderlow;
+         if(pizzaQuantity<0){
+		pizzaQuantity*=(-1);
+		}
+         printf("tose pitses %d eksipiretitai tilefonikos.\n",id); 
+      
+        paymentTime = ((int)rand_r % (Tpaymenthigh-Tpaymentlow+1))+Tpaymentlow;
+        if(paymentTime<0){
+		paymentTime*=(-1);
+		}
+        sleep(paymentTime);
+        pfail=(int)rand_r %101;
+        if(pfail<0){
+		pfail*=(-1);
+		}
+        if (pfail < Pfail)
         {
             printf("H paraggelia %d, apetuxe\n", id);
             return 0;
-        }else{
+        }
+        else {
             printf("H paraggelia %d, katoxurwthike\n", id);
-            income+=pizzaQuantity*10;
+            income += pizzaQuantity * Cpizza;
         }
         tel = pthread_mutex_lock(&lock);
         printf("H paraggelia %d eksipiretithike epitixos tilefonika! \n", id);
-        Ntel++;
+        printf("TO NTEL EINAI %d! \n", ntel);
+        ntel++;
+        printf("TO NTEL EINAI %d! \n", ntel);
         tel = pthread_cond_signal(&cond);
         tel = pthread_mutex_unlock(&lock);
-        printf("Preparing order: %d\n",id);
-        cooks = pthread_mutex_lock(&lock);
-        while (Ncook == 0) {
-        printf("H paraggelia %d, den brike diathesimo psisti...\n", id);
-        cooks = pthread_cond_wait(&cond, &lock);
+        printf("Preparing order: %d\n", id);
+        cooks = pthread_mutex_lock(&lock1);
+        while (ncook == 0) {
+            printf("H paraggelia %d, den brike diathesimo psisti...\n", id);
+            cooks = pthread_cond_wait(&cond1, &lock1);
         }
         printf("H paraggelia %d etoimazetai apo ton psisti.\n", id);
-        Ncook--;
-        cooks = pthread_mutex_unlock(&lock);
-        sleep(100);
-        printf("Cooking order: %d\n",id);
-        oven = pthread_mutex_lock(&lock);
+        ncook--;
+        cooks = pthread_mutex_unlock(&lock1);
+        sleep(Tprep);
+        printf("Cooking order: %d\n", id);
+        oven = pthread_mutex_lock(&lock2);
         while (Noven < pizzaQuantity) {
-        printf("H paraggelia %d, perimenei tous fournous...\n", id);
-        oven = pthread_cond_wait(&cond, &lock);
-        }
+            printf("H paraggelia %d, perimenei tous fournous...\n", id);
+            oven = pthread_cond_wait(&cond, &lock2);
+        } 	
         printf("H paraggelia %d bike stous fournous.\n", id);
-        Noven-=pizzaQuantity;
-        oven = pthread_mutex_unlock(&lock);
+        noven -= pizzaQuantity;
+        oven = pthread_mutex_unlock(&lock2);
         printf("H paraggelia %d o psistis einai diathesimos! \n", id);
-        Ncook++;
-        cooks= pthread_cond_signal(&cond);
-        cooks = pthread_mutex_unlock(&lock);
-        oven = pthread_mutex_lock(&lock);
-        sleep(1000);
-        printf("Packeting order: %d\n",id);
-        pack = pthread_mutex_lock(&lock);
-        while (N<0) {
-        printf("H paraggelia %d, perimenei na paketaristei...\n", id);
-        pack = pthread_cond_wait(&cond, &lock);
+        ncook++;
+        cooks = pthread_cond_signal(&cond1);
+        cooks = pthread_mutex_unlock(&lock1);
+        oven = pthread_mutex_lock(&lock2);
+        sleep(Tbake);
+        printf("Packeting order: %d\n", id);
+        pack = pthread_mutex_lock(&lock3);
+        while (N == 0) {
+            printf("H paraggelia %d, perimenei na paketaristei...\n", id);
+            pack = pthread_cond_wait(&cond3, &lock3);
         }
         printf("H paraggelia %d paketaristike.\n", id);
         N--;
-        pack = pthread_mutex_unlock(&lock);
-        sleep(200);
-        pack = pthread_mutex_lock(&lock);
+        pack = pthread_mutex_unlock(&lock3);
+        sleep(Tpack);
+        pack = pthread_mutex_lock(&lock3);
         printf("H paraggelia %d paketaristike epitixos! \n", id);
         N++;
-        pack = pthread_cond_signal(&cond);
-        pack = pthread_mutex_unlock(&lock);
+        pack = pthread_cond_signal(&cond3);
+        pack = pthread_mutex_unlock(&lock3);
         printf("H paraggelia %d psithike epitixos ! \n", id);
-        Noven+=pizzaQuantity;
-        oven = pthread_cond_signal(&cond);
-        oven = pthread_mutex_unlock(&lock);
-        printf("Delivering: %d\n",id);
-        delivery = pthread_mutex_lock(&lock);
-        while (Ndeliverer == 0) {
-        printf("H paraggelia %d, den brike diathesimo delivera...\n", id);
-        delivery = pthread_cond_wait(&cond, &lock);
+        noven += pizzaQuantity;
+        oven = pthread_cond_signal(&cond2);
+        oven = pthread_mutex_unlock(&lock2);
+        printf("Delivering: %d\n", id);
+        delivery = pthread_mutex_lock(&lock4);
+        while (ndeliverer == 0) {
+            printf("H paraggelia %d, den brike diathesimo delivera...\n", id);
+            delivery = pthread_cond_wait(&cond4, &lock4);
         }
         printf("H paraggelia %d einai sto dromo\n", id);
-        Ndeliverer--;
-        delivery = pthread_mutex_unlock(&lock);
-        while(deliveryTime<5){
-        deliveryTime=rand_r%16;
-        }
-        sleep(deliveryTime*100);
+        ndeliverer--;
+        delivery = pthread_mutex_unlock(&lock4);
+        deliveryTime =((int)rand_r % (Tdelhigh-Tdellow+1))+Tdellow;
+        if(deliveryTime<0){
+		deliveryTime*=(-1);
+		}
+        sleep(deliveryTime);
         printf("H paraggelia %d, paradothike\n", id);
-        sleep(deliveryTime*100);
-        delivery = pthread_mutex_lock(&lock);
+        sleep(deliveryTime);
+        delivery = pthread_mutex_lock(&lock4);
         printf("O deliveras gurise \n");
-        Ndeliverer++;
-        delivery = pthread_cond_signal(&cond);
-        delivery = pthread_mutex_unlock(&lock);
-        int end = clock_gettime(CLOCK_REALTIME, const struct timespec *tp);
-        int time =end - start;
+        ndeliverer++;
+        delivery = pthread_cond_signal(&cond4);
+        delivery = pthread_mutex_unlock(&lock4);
+        int end = 0;
+        int time = end - start;
         pthread_exit(NULL);
     }
-}  
+    
+    void main(int argc, char** argv[]) {
+
+    printf("Program name is: %s\n", argv[0]);
+
+    if (argc < 3) {
+        printf("Not enough argument passed through command line.\n");
+    }
+    int Ncustomers = atoi(argv[1]);
+    int seed=atoi(argv[2]);
+    int rc;
+    pthread_t threads[Ncustomers];
+    pthread_mutex_init(&lock, NULL);
+    pthread_cond_init(&cond, NULL);
+    pthread_mutex_init(&lock1, NULL);
+    pthread_cond_init(&cond1, NULL);
+    pthread_mutex_init(&lock2, NULL);
+    pthread_cond_init(&cond2, NULL);
+    pthread_mutex_init(&lock3, NULL);
+    pthread_cond_init(&cond3, NULL);
+    pthread_mutex_init(&lock4, NULL);
+    pthread_cond_init(&cond4, NULL);
+    int rand_r(seed);
+    int id[Ncustomers];
+    int randomTime;
+    int i=0;
+    while (Ncustomers > 0) {
+        id[i] = i+1;
+        rc = pthread_create(&threads[i], NULL, order, &id[i]);
+		randomTime = ((int)rand_r %(Torderhigh-Torderlow+1))+Torderlow;
+		if(randomTime<0){
+		randomTime*=(-1);
+		}
+        printf("Main: Order number %d\n", i+1);
+        sleep(randomTime);
+        i++;
+        Ncustomers--;
+    }
+    for (int i = 0; i < 25; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    pthread_mutex_destroy(&lock);
+    pthread_cond_destroy(&cond);
+    return 0;
+}
